@@ -11,7 +11,7 @@ import time
 import tensorflow as tf
 from ops import *
 from utils import *
-
+#import mlflow
 
 def conv_out_size_same(size, stride):
     return int(math.ceil(float(size) / float(stride)))
@@ -274,7 +274,8 @@ class TableGan(object):
 
         self.saver = tf.train.Saver()
 
-    def train(self, config, experiment):
+    #def train(self, config, experiment):
+    def train(self, config):
         print("Start Training...\n")
 
         d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
@@ -514,10 +515,10 @@ class TableGan(object):
                     })
 
                 counter += 1
-                experiment.log_metric("d_loss", errD_fake + errD_real, step=idx)
-                experiment.log_metric("g_loss", errG, step=idx)
+                #experiment.log_metric("d_loss", errD_fake + errD_real, step=idx)
+                #experiment.log_metric("g_loss", errG, step=idx)
                 if self.y_dim:
-                    experiment.log_metric("c_loss", errC, step=idx)
+                   # experiment.log_metric("c_loss", errC, step=idx)
                     print("Dataset: [%s] -> [%s] -> Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f, "
                           "c_loss: %.8f" % (config.dataset, config.test_id, epoch, idx, batch_idxs,
                                             time.time() - start_time, errD_fake + errD_real, errG, errC))
@@ -816,7 +817,7 @@ class TableGan(object):
 
         if os.path.exists(self.train_data_path + ".csv"):
 
-            X = pd.read_csv(self.train_data_path + ".csv", sep=';')
+            X = pd.read_csv(self.train_data_path + ".csv", sep=',')
             print("Loading CSV input file : %s" % (self.train_data_path + ".csv"))
 
             self.attrib_num = X.shape[1]
@@ -855,8 +856,10 @@ class TableGan(object):
         if self.y_dim:
             y = y.reshape(y.shape[0], -1).astype(np.int16)
             y_onehot = np.zeros((len(y), classes), dtype=np.float)
+            print(y_onehot.shape)
             for i, lbl in enumerate(y):
-                y_onehot[i, y[i]] = 1.0
+                print(i)
+                y_onehot[i, y[i]-1] = 1.0
             return X, y_onehot, y
 
         return X, None, None
